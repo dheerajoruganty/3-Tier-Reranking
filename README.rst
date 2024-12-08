@@ -15,7 +15,6 @@ CririsSum
 
 
 
-
 Efficient and Scalable Summarization System for CrisisFacts
 
 
@@ -27,6 +26,25 @@ Features
 --------
 
 * TODO
+
+Data Collection
+---------------
+
+The `data/` directory contains resources and scripts used for collecting and processing data necessary for the project.
+
+- **data_collection.ipynb**:  
+  This Jupyter notebook is used to gather and preprocess data for the CRISISFacts project. It automates the downloading and preparation of datasets required for analysis.
+
+  **Usage:**
+  1. Navigate to the `data/` directory.
+  2. Open the notebook using Jupyter Notebook or Jupyter Lab:
+     ```
+     jupyter notebook data/data_collection.ipynb
+     ```
+  3. Follow the instructions in the notebook to complete the data collection process.
+
+  **Dependencies:**  
+  Ensure all required dependencies are installed as per the `requirements_dev.txt` file.
 
 Credits
 -------
