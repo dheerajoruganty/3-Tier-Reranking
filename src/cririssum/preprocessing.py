@@ -1,88 +1,90 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, udf
-from pyspark.sql.types import StringType, ArrayType
+import pandas as pd
 import spacy
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import nltk
 
-def initialize_spark():
+# Download NLTK data files
+nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('stopwords')
+
+def load_parquet(file_path):
+    """
+    Loads a Parquet file into a Pandas DataFrame.
+
+    Parameters:
+        file_path (str): Path to the Parquet file.
     
-    """
-    Initializes a Spark session for data processing.
-
     Returns:
-        SparkSession: An active Spark session.
+        pd.DataFrame: Loaded DataFrame.
     """
-    return SparkSession.builder.appName("CRISISFacts Preprocessing").getOrCreate()
+    return pd.read_parquet(file_path)
 
-def tokenize_and_remove_stopwords(text, nlp):
+def preprocess_text(df, text_column):
     """
-    Tokenizes input text and removes stopwords.
+    Tokenizes text, removes stopwords, and performs entity recognition and normalization.
 
     Parameters:
-        text (str): The input text to process.
-        nlp (spacy.lang): A SpaCy language model for tokenization.
-
+        df (pd.DataFrame): DataFrame containing the text data.
+        text_column (str): Name of the column containing text data.
+    
     Returns:
-        str: Processed text with stopwords removed.
+        pd.DataFrame: DataFrame with preprocessed text and recognized entities.
     """
-    if not text:
-        return ""
-    doc = nlp(text)
-    tokens = [token.text for token in doc if not token.is_stop and token.is_alpha]
-    return " ".join(tokens)
-
-def recognize_and_normalize_entities(text, nlp):
-    """
-    Performs entity recognition and normalizes entities.
-
-    Parameters:
-        text (str): The input text to process.
-        nlp (spacy.lang): A SpaCy language model for entity recognition.
-
-    Returns:
-        str: Text with normalized named entities.
-    """
-    if not text:
-        return ""
-    doc = nlp(text)
-    entities = {ent.text: ent.label_ for ent in doc.ents}
-    return " | ".join(f"{text}:{label}" for text, label in entities.items())
-
-def preprocess_pipeline(input_parquet, output_path):
-    """
-    Preprocesses the input data pipeline with tokenization, stopword removal, and entity recognition.
-
-    Parameters:
-        input_parquet (str): Path to the input Parquet file.
-        output_path (str): Directory to save the preprocessed data.
-    """
-    # Initialize Spark session
-    spark = initialize_spark()
-
-    # Load Parquet data
-    df = spark.read.parquet(input_parquet)
-
-    # Initialize SpaCy language model
+    # Load NLP models
     nlp = spacy.load("en_core_web_sm")
+    stop_words = set(stopwords.words("english"))
 
-    # Define UDFs for tokenization and entity recognition
-    tokenize_udf = udf(lambda text: tokenize_and_remove_stopwords(text, nlp), StringType())
-    entity_udf = udf(lambda text: recognize_and_normalize_entities(text, nlp), StringType())
+    def process_text(text):
+        """
+        Tokenizes text, removes stopwords, performs entity recognition, and normalizes entities.
 
-    # Apply UDFs for preprocessing
-    preprocessed_df = df.withColumn("cleaned_text", tokenize_udf(col("text"))) \
-                        .withColumn("entities", entity_udf(col("text")))
+        Parameters:
+            text (str): Input text to preprocess.
+        
+        Returns:
+            tuple: Preprocessed text (str) and recognized entities (list).
+        """
+        # Tokenization and stopword removal
+        tokens = word_tokenize(text)
+        filtered_tokens = [word for word in tokens if word.lower() not in stop_words]
+        preprocessed_text = " ".join(filtered_tokens)
 
-    # Show sample output
-    preprocessed_df.show(truncate=False)
+        # Entity recognition
+        doc = nlp(preprocessed_text)
+        entities = [(ent.text, ent.label_) for ent in doc.ents]  # Extract entities and their labels
 
-    # Save preprocessed data
-    preprocessed_df.write.mode("overwrite").parquet(f"{output_path}/preprocessed_data.parquet")
-    preprocessed_df.write.mode("overwrite").csv(f"{output_path}/preprocessed_data.csv", header=True)
+        return preprocessed_text, entities
 
+    # Apply the process_text function to the text column
+    df["preprocessed_text"], df["entities"] = zip(*df[text_column].apply(process_text))
+    return df
+
+def save_preprocessed_data(df, output_path):
+    """
+    Saves the preprocessed DataFrame to a file.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame to save.
+        output_path (str): File path to save the DataFrame.
+    
+    Returns:
+        None
+    """
+    df.to_csv(output_path, index=False)
+
+# Main pipeline
 if __name__ == "__main__":
-    # File paths
-    input_parquet_path = "data/cleaned_crisisfacts_data.parquet"
-    output_directory = "data/preprocessed_crisisfacts"
+    # Step 1: Load data
+    input_file = "data/cleaned_crisisfacts_data.parquet"
+    data = load_parquet(input_file)
 
-    # Run preprocessing pipeline
-    preprocess_pipeline(input_parquet_path, output_directory)
+    # Step 2: Preprocess data
+    preprocessed_data = preprocess_text(data, text_column="text")
+
+    # Step 3: Save preprocessed data
+    output_file = "data/preprocessed_crisisfacts_data.csv"
+    save_preprocessed_data(preprocessed_data, output_file)
+
+    print(f"Preprocessed data saved to {output_file}.")
