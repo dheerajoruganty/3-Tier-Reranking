@@ -1,5 +1,4 @@
-name: CI/CD Pipeline with Local Tests and Docker Compose
-
+name: CI/CD Pipeline with Local Tests
 on:
   push:
     branches:
