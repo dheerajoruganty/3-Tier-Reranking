@@ -22,18 +22,46 @@ app = FastAPI()
 BACKEND_URL = "http://backend:8001"
 DATA_PATH = "/app/data/combined_data.csv"
 
+EXAMPLE_DATA = pd.DataFrame(
+    {
+        "doc_id": ["CrisisFACTS-010-Twitter-14969-0"],
+        "text": [
+            "just talked to the owner of houston corvette services. they were right next to the explosion. "
+        ],
+    }
+)
+
+
+# Replace the global dataset loading with a function
+def load_dataset(data_path=DATA_PATH):
+    """Load and preprocess dataset."""
+    try:
+        df = pd.read_csv(data_path)
+        df["text"] = df["text"].fillna("").apply(preprocess_text)
+        logger.info("Dataset preprocessed and BM25 index loaded successfully.")
+        return df
+    except Exception as e:
+        logger.error(f"Failed to load dataset or initialize BM25: {e}")
+        logger.info(f"Loading Example data for tests")
+        df = EXAMPLE_DATA
+        df["text"] = df["text"].fillna("").apply(preprocess_text)
+        logger.info("Dataset preprocessed and BM25 index loaded successfully.")
+        return df
+
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger.info(f"Using device: {device}")
 
 
 # Preprocessing function
 def preprocess_text(text):
-    """Clean and normalize text: lowercase, remove special characters, and strip."""
+    """Clean and normalize text: lowercase, remove URLs, special characters, and trim."""
     if not isinstance(text, str):
         return ""
-    text = text.lower().strip()
+    text = text.lower()
     text = re.sub(r"http\S+", "", text)  # Remove URLs
     text = re.sub(r"[^a-zA-Z0-9\s]", "", text)  # Remove special characters
+    text = text.strip()  # Remove leading/trailing whitespace
     return text
 
 
@@ -72,8 +100,7 @@ logger.info("Model loaded successfully.")
 # Load dataset and preprocess texts
 logger.info(f"Loading dataset from {DATA_PATH}...")
 try:
-    df = pd.read_csv(DATA_PATH)
-    df["text"] = df["text"].fillna("").apply(preprocess_text)
+    df = load_dataset()
     texts = df["text"].tolist()
     doc_ids = df["doc_id"].tolist()
     bm25 = BM25Okapi([text.split() for text in texts])

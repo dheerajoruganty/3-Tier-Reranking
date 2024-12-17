@@ -1,5 +1,0 @@
-fastapi
-requests
-uvicorn
-huggingface_hub[hf_transfer]
-hf_transfer

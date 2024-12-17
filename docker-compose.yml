@@ -20,7 +20,6 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./backend/faiss_indices:/app/faiss_indices:ro
       - /home/dh/DSAN/final-project-five-guys/data:/app/data:ro
     ports:
       - "8000:8000"

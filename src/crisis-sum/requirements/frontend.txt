@@ -1,3 +1,0 @@
-gradio
-requests
-huggingface_hub[hf_transfer]
