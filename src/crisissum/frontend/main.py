@@ -68,7 +68,7 @@ iface = gr.Interface(
         ),  # Replaced `default` with `value`
     ],
     outputs="json",
-    title="High Speed Retrieval using BM25 and Reranking using BGE_en_m3",
+    title="High Speed Retrieval using BM25 and Reranking using blevlabs/stella_en_v5",
     description="Search the application layer and display retrieval metrics.",
 )
 
