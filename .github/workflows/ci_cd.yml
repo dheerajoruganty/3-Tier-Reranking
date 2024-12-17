@@ -1,0 +1,71 @@
+name: CI/CD Pipeline with Local Tests and Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Build and Test Docker Compose Services
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python for Local Tests
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # Install Dependencies Locally
+      - name: Install dependencies for local testing
+        run: |
+          python -m venv env
+          source env/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r src/crisissum/app_layer/requirements.txt
+          pip install pytest
+
+      # Run Local Tests
+      - name: Run pytest locally
+        run: |
+          source env/bin/activate
+          pytest tests/
+
+      # Set up Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build Docker Compose Services Locally
+      - name: Build backend, frontend, and app_layer
+        run: |
+          docker-compose -f src/crisissum/docker-compose.yml build backend
+          docker-compose -f src/crisissum/docker-compose.yml build frontend
+          docker-compose -f src/crisissum/docker-compose.yml build app_layer
+
+      # Run Docker Compose Services
+      - name: Start all Docker Compose services
+        run: |
+          docker-compose -f src/crisissum/docker-compose.yml up -d
+
+      # Verify services are running
+      - name: Check running Docker containers
+        run: |
+          docker ps -a
+
+      # Run Tests Inside the app_layer Container
+      - name: Run pytest tests in app_layer
+        run: |
+          docker-compose -f src/crisissum/docker-compose.yml exec -T app_layer pytest tests/
+
+      # Tear Down Docker Compose Services
+      - name: Tear down Docker Compose
+        run: |
+          docker-compose -f src/crisissum/docker-compose.yml down
