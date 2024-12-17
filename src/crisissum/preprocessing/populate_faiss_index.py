@@ -4,24 +4,7 @@ import faiss
 from sentence_transformers import SentenceTransformer
 import os
 import hashlib
-
-# --------------------------- #
-#           Paths             #
-# --------------------------- #
-
-# Input data file
-DATA_FILE = "../../../data/combined_data.csv"
-
-# Directory and paths for FAISS indices
-INDEX_DIR = "../../../data/faiss_indices/"
-FLOAT32_INDEX_PATH = os.path.join(INDEX_DIR, "crisisfacts_float32.index")
-BINARY_INDEX_PATH = os.path.join(INDEX_DIR, "crisisfacts_binary.index")
-INT8_INDEX_PATH = os.path.join(INDEX_DIR, "crisisfacts_int8.index")
-HASH_FILE_PATH = os.path.join(INDEX_DIR, "data_hash.txt")
-
-# --------------------------- #
-#      Function Definitions   #
-# --------------------------- #
+import argparse
 
 
 def calculate_file_hash(filepath: str) -> str:
@@ -99,8 +82,11 @@ def populate_faiss_indices(data_file: str, index_dir: str) -> None:
         FileNotFoundError: If the input data file does not exist.
         Exception: For unexpected errors during processing.
     """
+    # Path for hash file
+    hash_file_path = os.path.join(index_dir, "data_hash.txt")
+
     # Check for data changes and skip if needed
-    if should_skip_index_creation(data_file, HASH_FILE_PATH):
+    if should_skip_index_creation(data_file, hash_file_path):
         return
 
     if not os.path.exists(data_file):
@@ -134,18 +120,31 @@ def populate_faiss_indices(data_file: str, index_dir: str) -> None:
         index_float32.add(embeddings)
 
     # Save the Float32 index
-    faiss.write_index(index_float32, FLOAT32_INDEX_PATH)
-    print(f"Float32 index populated and saved at: {FLOAT32_INDEX_PATH}")
+    float32_index_path = os.path.join(index_dir, "crisisfacts_float32.index")
+    faiss.write_index(index_float32, float32_index_path)
+    print(f"Float32 index populated and saved at: {float32_index_path}")
 
-
-# --------------------------- #
-#       Script Execution      #
-# --------------------------- #
 
 if __name__ == "__main__":
+    # Argument parser
+    parser = argparse.ArgumentParser(description="Populate FAISS Indices")
+    parser.add_argument(
+        "--data_file",
+        type=str,
+        required=True,
+        help="Path to the input data CSV file (e.g., combined_data.csv).",
+    )
+    parser.add_argument(
+        "--index_dir",
+        type=str,
+        required=True,
+        help="Directory to store the generated FAISS indices.",
+    )
+    args = parser.parse_args()
+
     try:
         print("Starting FAISS index creation...")
-        populate_faiss_indices(DATA_FILE, INDEX_DIR)
+        populate_faiss_indices(args.data_file, args.index_dir)
         print("FAISS index creation completed successfully.")
     except FileNotFoundError as fnf_error:
         print(f"[Error]: {fnf_error}")

@@ -1,19 +1,7 @@
 import pandas as pd
 import os
 import csv
-
-# --------------------------- #
-#           Paths             #
-# --------------------------- #
-
-# Input directory containing CSV files
-INPUT_DIR = "../../../data/cleaned_crisisfacts_data.csv"
-# Output file where combined data will be stored
-OUTPUT_FILE = "../../../data/combined_data.csv"
-
-# --------------------------- #
-#      Function Definition    #
-# --------------------------- #
+import argparse
 
 
 def combine_csv_files(input_dir: str, output_file: str) -> None:
@@ -98,13 +86,25 @@ def combine_csv_files(input_dir: str, output_file: str) -> None:
         print("No valid files found to combine.")
 
 
-# --------------------------- #
-#           Execution         #
-# --------------------------- #
-
 if __name__ == "__main__":
+    # Argument parser
+    parser = argparse.ArgumentParser(description="Combine CSV Files")
+    parser.add_argument(
+        "--input_dir",
+        type=str,
+        required=True,
+        help="Path to the input directory containing CSV files.",
+    )
+    parser.add_argument(
+        "--output_file",
+        type=str,
+        required=True,
+        help="Path to save the combined CSV file.",
+    )
+    args = parser.parse_args()
+
     try:
-        combine_csv_files(INPUT_DIR, OUTPUT_FILE)
+        combine_csv_files(args.input_dir, args.output_file)
     except FileNotFoundError as fnf_error:
         print(f"[Error]: {fnf_error}")
     except Exception as e:
