@@ -1,0 +1,12 @@
+fastapi
+requests
+uvicorn
+sentence_transformers
+pandas
+python-multipart
+rank-bm25
+huggingface_hub[hf_transfer]
+hf_transfer
+torch
+rouge-score==0.1.2
+httpx

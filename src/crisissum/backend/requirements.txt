@@ -1,0 +1,7 @@
+faiss-gpu
+sentence-transformers
+fastapi
+uvicorn
+pandas
+python-multipart
+numpy==1.9

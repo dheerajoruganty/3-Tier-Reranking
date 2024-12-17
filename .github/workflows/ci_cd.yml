@@ -1,0 +1,41 @@
+name: CI/CD Pipeline with Local Tests and Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Build and Test Docker Compose Services
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python for Local Tests
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # Install Dependencies for Local Tests
+      - name: Install dependencies for local testing
+        run: |
+          python -m venv env
+          source env/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r src/crisissum/app_layer/requirements.txt
+          pip install pytest
+
+      # Run Local Tests
+      - name: Run pytest locally
+        run: |
+          source env/bin/activate
+          pytest tests/
+
