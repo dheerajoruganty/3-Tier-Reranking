@@ -1,11 +1,11 @@
-- [ ] Update Pyproject.toml
-- [ ] add logging
-- [ ] add pytests
-- [ ] Architecture Diagram
-- [ ] make a bash script which does everything
-- [ ] put data in s3
+- [x] Update Pyproject.toml
+- [x] add logging
+- [x] add pytests
+- [x] Architecture Diagram
+- [x] make a bash script which does everything
+- [x] put data in s3
 - [ ] linting, docstrings
-- [ ] system performance, ROUGE Score, Baselines
-- [ ] README Should have names of all team members
-- [ ] Close all issues in Github
+- [x] system performance, ROUGE Score, Baselines
+- [x] README Should have names of all team members
+- [x] Close all issues in Github
 - [ ] 
