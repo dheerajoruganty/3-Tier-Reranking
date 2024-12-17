@@ -17,47 +17,45 @@ classifiers = [
 
 ]
 license = {text = "MIT license"}
+
 dependencies = [
-  
+    "fastapi",
+    "requests",
+    "uvicorn",
+    "sentence-transformers",
+    "pandas",
+    "python-multipart",
+    "rank-bm25",
+    "huggingface_hub[hf_transfer]",
+    "hf_transfer",
+    "torch",
+    "rouge-score==0.1.2",
+    "httpx",
+    "gradio",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "coverage",  # testing
-    "mypy",  # linting
-    "pytest",  # testing
-    "ruff"  # linting
+gpu = [
+    "faiss-gpu",
+    "numpy<2.0",
 ]
 
-[project.urls]
+[tool.pdm]
+# Optional PDM tool configuration for managing dependencies (optional)
 
-bugs = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/issues"
-changelog = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/master/changelog.md"
-homepage = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
 
-[tool.setuptools.package-data]
-"*" = ["*.*"]
+[tool.black]
+line-length = 88
+target-version = ['py310']
 
-
-
-
-# Mypy
-# ----
-
-[tool.mypy]
-files = "."
-
-# Use strict defaults
-strict = true
-warn_unreachable = true
-warn_no_return = true
-
-[[tool.mypy.overrides]]
-# Don't require test functions to include types
-module = "tests.*"
-allow_untyped_defs = true
-disable_error_code = "attr-defined"
-
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_gitignore = true
