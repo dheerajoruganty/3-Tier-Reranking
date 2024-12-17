@@ -2,6 +2,8 @@
 
 ## **Overview**  
 
+![CrisisSum Architecture](images/Crisissum.png)
+
 **CrisisSum** is a containerized platform designed for fast and efficient retrieval, ranking, and summarization of crisis-related events. It combines BM25-based retrieval, FAISS indexing, and embedding-based re-ranking to provide highly relevant results along with detailed evaluation metrics.  
 
 This system leverages:  
