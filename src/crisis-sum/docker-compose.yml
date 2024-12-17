@@ -1,0 +1,49 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    volumes:
+      - ./backend/faiss_indices:/app/faiss_indices:ro
+      - /home/dh/DSAN/final-project-five-guys/data:/app/data:ro
+    ports:
+      - "8001:8001"
+    environment:
+      - TRANSFORMERS_OFFLINE=1
+
+  app_layer:
+    build:
+      context: ./app_layer
+      args:
+        BASE: gpu  # Explicitly set to 'gpu'
+    container_name: app_layer
+    depends_on:
+      - backend
+    volumes:
+      - ./backend/faiss_indices:/app/faiss_indices:ro
+      - /home/dh/DSAN/final-project-five-guys/data:/app/data:ro
+    ports:
+      - "8000:8000"
+    environment:
+      - BACKEND_URL=http://backend:8001
+      - HF_HUB_ENABLE_HF_TRANSFER=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    depends_on:
+      - app_layer
+    networks:
+      - default
+    ports:
+      - "7860:7860"
+
+networks:
+  default:
+    driver: bridge

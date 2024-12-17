@@ -1,0 +1,17 @@
+# Use a base Python image
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy files
+COPY . /app
+
+# Install dependencies
+RUN pip install -r /app/requirements.txt
+
+# Expose the port for frontend
+EXPOSE 7860
+
+# Start the frontend
+CMD ["python", "main.py"]

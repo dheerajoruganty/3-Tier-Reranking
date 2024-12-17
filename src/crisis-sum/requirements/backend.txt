@@ -1,0 +1,6 @@
+faiss-cpu
+sentence-transformers
+fastapi
+uvicorn
+huggingface_hub
+hf_transfer
