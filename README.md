@@ -1,7 +1,3 @@
-Here’s the **final updated `README.md`** incorporating the requested details and adjustments:
-
----
-
 # **CrisisSum**: A Crisis Event Data Retrieval Platform  
 
 ## **Overview**  
@@ -75,8 +71,73 @@ CrisisSum/
 
 - Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/).  
 - Optional: Install Python 3.10+ for local testing and development.  
-
+- Git LFS
 ---  
+
+
+## **Using Git LFS (Large File Storage)**  
+
+This project includes large files like **datasets (CSV/Parquet)** and **FAISS indices**, which are required to run the platform. To manage these files efficiently and ensure a lightweight repository, we use **Git LFS (Large File Storage)**.
+
+### **Why Git LFS?**  
+- Handles large files such as `.csv`, `.parquet`, and `.index` files.  
+- Ensures that these critical files are **stored and retrieved efficiently**.  
+- Keeps repository clones lightweight while still enabling Docker containers to access the necessary files.
+
+---
+
+### **Setup Git LFS**  
+
+1. **Install Git LFS**:  
+   Follow the instructions for your operating system:  
+   [Git LFS Installation Guide](https://git-lfs.github.com/).  
+
+1. **Clone the Repository with LFS Files**:  
+
+   If you're cloning the project for the first time, make sure to fetch the LFS files:  
+
+   ```bash
+   git clone https://github.com/DSAN6700-24Fall/final-project-five-guys.git
+   cd final-project-five-guys
+   git lfs pull
+   ```
+
+---
+
+### **Files Tracked by Git LFS**  
+
+- **Dataset Files**:  
+   - `data/combined_data.csv`  
+   - `initial_cleaned_data/cleaned_crisisfacts_data.csv`  
+   - `initial_cleaned_data/cleaned_crisisfacts_data.parquet`  
+
+- **FAISS Index Files**:  
+   - `src/crisissum/backend/faiss_indices/*.index`  
+
+---
+
+### **Ensure Docker Access to LFS Files**  
+
+To run the Docker containers successfully, ensure that Git LFS files are fetched locally before starting the services:  
+
+```bash
+git lfs pull
+docker-compose up --build
+```
+
+---
+
+### **Verify LFS Files**  
+
+You can verify that large files are tracked by Git LFS:  
+
+```bash
+git lfs ls-files
+```
+
+This command will display all files currently being managed by Git LFS.  
+
+---
 
 ### **Run the Project**  
 
