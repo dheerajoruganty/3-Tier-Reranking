@@ -162,7 +162,7 @@ def main():
 
     # Step 1: Vectorize text data
     print("\nStep 1: Text Vectorization")
-    tfidf_matrix, vectorizer = vectorize_text(data, text_column="preprocessed_text")
+    tfidf_matrix, vectorizer = vectorize_text(data, text_column="text")
 
     # Step 2: Apply KMeans Clustering
     print("\nStep 2: KMeans Clustering")

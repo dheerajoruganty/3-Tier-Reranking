@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.553">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>discussion</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="discussion_files/libs/clipboard/clipboard.min.js"></script>
+<script src="discussion_files/libs/quarto-html/quarto.js"></script>
+<script src="discussion_files/libs/quarto-html/popper.min.js"></script>
+<script src="discussion_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="discussion_files/libs/quarto-html/anchor.min.js"></script>
+<link href="discussion_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="discussion_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="discussion_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="discussion_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="discussion_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="discussion" class="level1">
+<h1><strong>Discussion</strong></h1>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction"><strong>Introduction</strong></h3>
+<p>For this project, we decided to work on the CRISISFacts track, with the goal of creating fast retrieval technologies for emerging crisis events. CRISISFacts provides a diverse set of data streams, including Twitter/X, Reddit, Facebook, and online news sources. The goal of our project was to enable real-time retrieval of the information disseminated from these sources to aid public response to crisis events. This is particularly valuable for stakeholders like first responders, emergency managers, and policy-makers, who need quick, reliable, and organized information to make informed decisions during emergencies.</p>
+<p>Our project aimed to address the challenges of extracting, organizing, and ranking relevant information from these streams to provide concise, actionable summaries of events. These challenges include handling noisy and unstructured text, processing large-scale datasets, and ensuring relevance and accuracy in summaries. To tackle these, we designed and implemented a structured approach:</p>
+<ol type="1">
+<li><strong>Data Ingestion and Preprocessing</strong>: Using Python and Spark, we built robust pipelines to clean, normalize, and preprocess the textual data to ensure consistent formatting across various data streams.</li>
+<li><strong>Feature Engineering</strong>: Leveraging techniques like dimensionality reduction and clustering, we identified key information clusters to structure the data better.</li>
+<li><strong>Summarization Framework</strong>: We implemented a hybrid model combining extractive summarization for relevant snippet retrieval and neural-based methods for context-aware ranking and abstractive summarization.</li>
+<li><strong>Evaluation</strong>: Throughout the process, we evaluated the system’s performance using retrieval time, relevance metrics, and cost-effectiveness.</li>
+<li><strong>User Interface Development and Deployment</strong>: We developed a user-friendly interface to enable intuitive search and retrieval functionality and deployed the solution using containerized services for scalability.</li>
+</ol>
+</section>
+<section id="system-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="system-architecture"><strong>System Architecture</strong></h3>
+<p>The following diagram illustrates the end-to-end architecture of the CRISISFacts summarization system. This modular design ensures scalability, efficiency, and real-time query processing.</p>
+<ol type="1">
+<li><strong>Presentation Tier</strong>: Gradio-based WebServer for user interaction.<br>
+</li>
+<li><strong>Logic Tier</strong>: A FastAPI backend handles query processing and orchestrates retrieval logic.<br>
+</li>
+<li><strong>Data Tier</strong>: FAISS, a highly optimized vector database, stores the embeddings and enables efficient nearest-neighbor search.</li>
+</ol>
+<p>The modular architecture allows seamless integration between components. Queries are passed from the frontend to the application layer and then to the backend for embedding search and re-ranking.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/Crisissum.png" class="img-fluid figure-img"></p>
+<figcaption>System Architecture</figcaption>
+</figure>
+</div>
+<hr>
+<hr>
+</section>
+<section id="data-subsetting-preprocessing-and-exploratory-data-analysis-eda" class="level3">
+<h3 class="anchored" data-anchor-id="data-subsetting-preprocessing-and-exploratory-data-analysis-eda"><strong>Data Subsetting, Preprocessing, and Exploratory Data Analysis (EDA)</strong></h3>
+<section id="data-subsetting-and-preprocessing" class="level4">
+<h4 class="anchored" data-anchor-id="data-subsetting-and-preprocessing"><strong>Data Subsetting and Preprocessing</strong></h4>
+<p>A critical component of the project involved preprocessing large volumes of text data from various sources. This was achieved through a systematic pipeline developed in Python. The preprocessing workflow included the following steps:</p>
+<ol type="1">
+<li><p><strong>Loading and Normalizing Data</strong>: We used Pandas to load raw Parquet files and ensure compatibility across different formats. The <code>load_parquet</code> function enabled seamless data ingestion while handling potential errors in file loading.</p></li>
+<li><p><strong>Text Tokenization and Stopword Removal</strong>: The project employed <code>nltk</code> for tokenization and stopword removal. These processes transformed text into tokens and filtered out irrelevant words to reduce noise and improve model input quality.</p></li>
+<li><p><strong>Entity Recognition and Normalization</strong>: Using SpaCy, we identified named entities such as locations, people, and organizations in the text. This step added semantic depth to the processed data, enabling context-aware clustering and summarization.</p></li>
+<li><p><strong>Output Preparation</strong>: Finally, the processed data was saved to CSV files for downstream tasks. This ensured that the cleaned data was reusable and accessible to other modules in the pipeline.</p></li>
+</ol>
+</section>
+<section id="exploratory-data-analysis-eda" class="level4">
+<h4 class="anchored" data-anchor-id="exploratory-data-analysis-eda"><strong>Exploratory Data Analysis (EDA)</strong></h4>
+<p>The exploratory data analysis (EDA) phase of our project aimed to uncover hidden patterns and evaluate the structure of the textual data. This step was critical in identifying clusters, outliers, and meaningful information from a vast dataset of crisis-related information.</p>
+<p><strong>1. Text Vectorization</strong> To convert unstructured text into a format suitable for machine learning, we implemented the <code>vectorize_text</code> function using the TF-IDF (Term Frequency-Inverse Document Frequency) technique. This process: - Transformed textual data into numerical vectors, representing the importance of words in the corpus. - Limited the vocabulary size to 5000 terms to balance computational efficiency and expressiveness. The TF-IDF matrix generated served as the foundation for clustering and dimensionality reduction tasks.</p>
+<p><strong>2. Clustering with KMeans</strong> KMeans clustering was applied to group similar documents based on their TF-IDF representations. Using the <code>apply_kmeans</code> function, the algorithm divided the data into user-specified clusters (<code>n_clusters</code>). This process: - Assigned cluster labels to each document based on proximity in the vector space. - Created groupings that reflected thematic similarities in the text.</p>
+<p>The silhouette score, a metric for evaluating the cohesion and separation of clusters, was computed to assess the quality of clustering. Higher scores indicated well-defined clusters.</p>
+<p><strong>3. Clustering with DBSCAN</strong> We further explored the structure of the data using DBSCAN (Density-Based Spatial Clustering of Applications with Noise). The <code>apply_dbscan</code> function allowed for: - Detection of clusters based on density, without requiring predefined cluster counts. - Identification of noise points (outliers) that did not belong to any cluster.</p>
+<p>This method was particularly effective in highlighting smaller, dense clusters within the dataset.</p>
+<p><strong>4. Dimensionality Reduction and Visualization</strong> To visualize high-dimensional text data, we used PCA (Principal Component Analysis) to project the TF-IDF vectors into a 2D space. The <code>analyze_clusters</code> function incorporated PCA for dimensionality reduction and plotted the clusters using Matplotlib. These visualizations: - Provided an intuitive understanding of cluster separations. - Highlighted the thematic cohesion of documents within clusters.</p>
+<p>Both KMeans and DBSCAN results were visualized, offering complementary perspectives on the underlying data distribution.</p>
+</section>
+</section>
+<section id="kmeans-clustering-visualization" class="level3">
+<h3 class="anchored" data-anchor-id="kmeans-clustering-visualization"><strong>KMeans Clustering Visualization</strong></h3>
+<p>The figure below visualizes the clustering results produced by the <strong>KMeans algorithm</strong>. Using <strong>TF-IDF vectorization</strong> to extract meaningful features from the textual data, we applied <strong>Principal Component Analysis (PCA)</strong> to reduce the data’s dimensionality to two components. This allowed for better visualization of the high-dimensional clusters.</p>
+<p>From the visualization:<br>
+- Each color represents a different cluster as identified by KMeans.<br>
+- The data appears well separated into regions, but there is visible overlap between certain clusters, indicating the similarity of text in those areas.<br>
+- Cluster 4 (yellow) occupies a distinct region, suggesting it contains a group of highly related documents.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/KMeans%20Clustering.png" class="img-fluid figure-img"></p>
+<figcaption>KMeans Clustering</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+<section id="pca-visualization" class="level3">
+<h3 class="anchored" data-anchor-id="pca-visualization"><strong>PCA Visualization</strong></h3>
+<p>This image represents the <strong>PCA results</strong> for dimensionality reduction, which was crucial for understanding the high-dimensional TF-IDF features.<br>
+- PCA projects the data onto two dimensions (PCA Dimension 1 and PCA Dimension 2), capturing the maximum variance in the data.<br>
+- The color-coded clusters correspond to the KMeans clustering results.<br>
+- The distinct spatial regions suggest that PCA is effective in retaining the structure of the clusters while reducing the dimensionality.</p>
+<p>Key Observations:<br>
+- PCA successfully reduces the data to a two-dimensional space while preserving the clustering structure.<br>
+- Cluster 4 (yellow) remains clearly separated, reinforcing its distinction from the other clusters.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/PCA.png" class="img-fluid figure-img"></p>
+<figcaption>PCA Visualization</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+<section id="t-sne-visualization" class="level3">
+<h3 class="anchored" data-anchor-id="t-sne-visualization"><strong>t-SNE Visualization</strong></h3>
+<p>The t-SNE visualization highlights the non-linear relationships in the data after dimensionality reduction. Unlike PCA, <strong>t-SNE</strong> focuses on preserving local structure within the data, which helps in identifying finer patterns among text samples.</p>
+<p>Observations:<br>
+- The t-SNE plot forms a more circular structure, with a concentration of data points in the center and spread-out regions towards the boundary.<br>
+- This suggests that many text samples are highly similar and overlap significantly.<br>
+- Outliers can be seen towards the periphery of the visualization, representing unique or dissimilar text data.</p>
+<p>While t-SNE is useful for visualizing high-dimensional data, it does not maintain the same global relationships as PCA.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/TSNE.png" class="img-fluid figure-img"></p>
+<figcaption>t-SNE Visualization</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+<section id="dbscan-clustering-visualization" class="level3">
+<h3 class="anchored" data-anchor-id="dbscan-clustering-visualization"><strong>DBSCAN Clustering Visualization</strong></h3>
+<p>This visualization shows the clustering results obtained using <strong>DBSCAN</strong>, a density-based clustering method. Unlike KMeans, DBSCAN identifies clusters based on density and marks noise points that do not belong to any cluster.</p>
+<p>Key Observations:<br>
+- A significant number of points (colored as 0) are identified as noise.<br>
+- The remaining clusters are less distinct compared to KMeans, which indicates that DBSCAN struggles to form well-separated clusters due to the high dimensionality and sparse nature of TF-IDF data.<br>
+- The presence of noise points is useful for identifying outliers or unstructured data in the collection.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/DBScan.png" class="img-fluid figure-img"></p>
+<figcaption>DBSCAN Clustering</figcaption>
+</figure>
+</div>
+<p>These visualizations collectively demonstrate the effectiveness of different clustering techniques and dimensionality reduction approaches in identifying patterns within high-dimensional text data.</p>
+<hr>
+</section>
+<section id="methodology" class="level3">
+<h3 class="anchored" data-anchor-id="methodology"><strong>Methodology</strong></h3>
+<section id="frontend" class="level4">
+<h4 class="anchored" data-anchor-id="frontend"><strong>Frontend</strong></h4>
+<p>We implemented the frontend using <strong>Gradio</strong>, a lightweight and versatile library for building machine learning interfaces. Gradio enables the creation of highly interactive and user-friendly interfaces with minimal effort, which aligns perfectly with our goal of creating a deployable, real-time system for querying and summarizing crisis-related data.</p>
+<p><strong>Core Functionality</strong> 1. <strong>Integration with the Application Layer</strong><br>
+The frontend serves as the user interface, forwarding user queries to the application layer and displaying ranked results and retrieval metrics. The critical function here is <code>search_query</code>, which:</p>
+<ul>
+<li><p><strong>Takes Input from the User</strong>: Users provide a search query and specify the number of top results (<code>top_k</code>) they want to retrieve.</p></li>
+<li><p><strong>Forwards the Request</strong>: The function sends a GET request to the application layer using the <strong><code>requests</code></strong> library. This choice is due to its simplicity and robustness for handling HTTP requests, enabling seamless communication with the backend.</p></li>
+<li><p><strong>Handles Responses</strong>: Responses from the application layer are parsed into results (retrieved documents) and metrics (e.g., retrieval time and ranking performance). These are formatted into a JSON object to ensure consistency and readability.</p></li>
+</ul>
+<p>By encapsulating this logic, <code>search_query</code> acts as a bridge between the user and the application layer, abstracting complex backend operations.</p>
+<ol start="2" type="1">
+<li><strong>Error Handling</strong><br>
+Robust error handling ensures that:
+<ul>
+<li>Any HTTP-related errors (e.g., timeouts or connection issues) are logged and displayed to the user.</li>
+<li>Unexpected failures in processing queries or responses are caught and logged to maintain system stability. Logging is implemented via Python’s built-in <strong><code>logging</code></strong> module to track interactions and identify potential issues.</li>
+</ul></li>
+</ol>
+<p><strong>Why Gradio?</strong> Gradio was chosen for its seamless integration with Python, making it ideal for rapid prototyping and deployment of machine learning applications. Its declarative interface design allows us to focus on functionality rather than building extensive UI logic. Key features we leveraged include:</p>
+<ul>
+<li><p><strong>Textbox Input</strong>: Users enter queries in a simple and intuitive text field.</p></li>
+<li><p><strong>Slider for Top-K Results</strong>: This adjustable slider empowers users to control the granularity of their query results, offering a customizable experience.</p></li>
+<li><p><strong>JSON Output</strong>: Displaying metrics and results in JSON format ensures transparency and compatibility with other tools or systems.</p></li>
+</ul>
+<hr>
+</section>
+<section id="application-layer" class="level4">
+<h4 class="anchored" data-anchor-id="application-layer"><strong>Application Layer</strong></h4>
+<p>The application layer acts as the heart of the system, orchestrating the retrieval and ranking of information through the integration of multiple machine learning techniques. Built using <strong>FastAPI</strong>, a modern and fast web framework, this layer ensures high-performance processing and scalable deployment for real-time crisis data analysis.</p>
+<p><strong>Key Functionalities</strong></p>
+<ol type="1">
+<li><p><strong>Hybrid Retrieval System</strong></p>
+<ul>
+<li><p>The application layer employs a hybrid retrieval strategy:</p>
+<ul>
+<li><strong>BM25 Algorithm</strong>: Used for initial document retrieval, BM25 calculates relevance scores based on term frequency, document length, and term specificity. This ensures efficient keyword-based ranking for initial filtering.</li>
+<li><strong>SentenceTransformer with FAISS</strong>: Embeddings generated using the <strong><code>blevlabs/stella_en_v5</code></strong> model enable semantic understanding of queries. The FAISS backend performs approximate nearest-neighbor search, ensuring scalability for large datasets.</li>
+</ul></li>
+<li><p>These methods complement each other:</p>
+<ul>
+<li>BM25 handles exact matches efficiently.</li>
+<li>Sentence embeddings and FAISS enable retrieval of semantically similar documents, even when exact matches are absent.</li>
+</ul></li>
+</ul>
+<p><strong>Why BM25 and Sentence Transformers?</strong><br>
+BM25 is lightweight and computationally efficient, making it ideal for filtering large datasets quickly. Sentence Transformers provide deep contextual understanding, enabling more sophisticated ranking for nuanced queries.</p></li>
+<li><p><strong>Re-ranking with Similarity Metrics</strong></p>
+<ul>
+<li><p>The retrieved results are re-ranked based on:</p>
+<ul>
+<li><strong>Cosine Similarity</strong>: Measures the similarity between the query vector and document embeddings.</li>
+<li><strong>ROUGE Scores</strong>: Quantifies textual overlap between the query and retrieved results, helping evaluate their relevance.</li>
+<li><strong>Jaccard Similarity</strong>: Computes word-level overlap, offering a simple but effective relevance check.</li>
+</ul></li>
+<li><p>Combining these metrics ensures the final ranked results are not only semantically relevant but also contextually aligned with the query.</p></li>
+</ul>
+<p><strong>Why Multiple Metrics?</strong><br>
+Each metric addresses a different aspect of relevance:</p>
+<ul>
+<li>Cosine Similarity captures semantic alignment.</li>
+<li>ROUGE evaluates textual overlap for structured data.</li>
+<li>Jaccard accounts for keyword-level overlaps.</li>
+</ul></li>
+</ol>
+<hr>
+<ol start="3" type="1">
+<li><p><strong>API Endpoints</strong></p>
+<ul>
+<li><p><strong>Health Check (<code>/</code>)</strong>: Confirms the readiness of the application layer.</p></li>
+<li><p><strong>Query Endpoint (<code>/query</code>)</strong>:</p>
+<ul>
+<li>Accepts a user query and the desired number of results (<code>top_k</code>).</li>
+<li>Executes BM25, embedding-based retrieval, and re-ranking.</li>
+<li>Returns a JSON response with ranked results and detailed performance metrics.</li>
+</ul></li>
+</ul></li>
+</ol>
+<hr>
+<p><strong>Why FastAPI?</strong> FastAPI offers several advantages:</p>
+<ul>
+<li><p><strong>Asynchronous Capabilities</strong>: Handles multiple requests efficiently, critical for real-time systems.</p></li>
+<li><p><strong>Validation and Documentation</strong>: Built-in query parameter validation and automatic generation of OpenAPI documentation ensure robust and maintainable code.</p></li>
+<li><p><strong>Scalability</strong>: Optimized for high throughput, it can scale horizontally with minimal overhead.</p></li>
+</ul>
+<hr>
+</section>
+<section id="performance-metrics-and-resource-utilization" class="level4">
+<h4 class="anchored" data-anchor-id="performance-metrics-and-resource-utilization"><strong>Performance Metrics and Resource Utilization</strong></h4>
+<p>In terms of performance tracking, we focused heavily on monitoring the system’s computational efficiency and resource utilization to ensure scalability and low latency. Although these metrics are not shown to the user, we tracked them internally using tools like <strong><code>nvitop</code></strong> for GPU usage and <strong><code>htop</code></strong> for CPU and memory insights. This gave us a deeper understanding of how the system behaves under load and where optimizations might be needed.</p>
+<ul>
+<li><strong>BM25 Time</strong>: The time taken for keyword-based retrieval is a CPU-bound operation.
+<ul>
+<li>BM25 is lightweight and fast since it doesn’t require embeddings or complex computations.<br>
+</li>
+<li>Acts as a baseline for retrieving relevant documents quickly.</li>
+</ul></li>
+<li><strong>Embedding Generation Time</strong>: This step leverages the <strong>“blevlabs/stella_en_v5” SentenceTransformer</strong> model to generate embeddings.
+<ul>
+<li><strong>GPU Utilization</strong>: Peaked at <strong>57%</strong> on an <strong>Nvidia A10</strong> when querying for <strong>K=100</strong> results.<br>
+</li>
+<li><strong>CPU Utilization</strong>: Averaged <strong>42-45%</strong>, handling preprocessing and orchestration tasks.<br>
+</li>
+<li>This demonstrates efficient use of the GPU for tensor operations and highlights the importance of parallelization.</li>
+</ul></li>
+<li><strong>FAISS Retrieval Time</strong>: FAISS, optimized for similarity searches, handles the top-K nearest neighbor retrieval efficiently.
+<ul>
+<li>GPU utilization remained consistent at <strong>57%</strong> during FAISS operations.<br>
+</li>
+<li>This was critical for maintaining sub-second latency in vector-based search.</li>
+</ul></li>
+<li><strong>Re-ranking Time</strong>: Involves computing similarity scores, such as cosine similarity, for the retrieved results.
+<ul>
+<li><strong>GPU</strong>: Accelerates embedding comparisons.<br>
+</li>
+<li><strong>CPU</strong>: Handles result organization, filtering, and orchestration overhead.<br>
+</li>
+<li>By splitting this workload effectively, we ensured minimal latency during re-ranking.</li>
+</ul></li>
+<li><strong>Memory Usage</strong>:
+<ul>
+<li>The system consumed approximately <strong>5 GB of RAM</strong> during testing.<br>
+</li>
+<li>This includes:
+<ul>
+<li>TF-IDF matrix storage for clustering.<br>
+</li>
+<li>FAISS index loaded into memory for retrieval.<br>
+</li>
+<li>Temporary storage of query-specific embeddings.</li>
+</ul></li>
+</ul></li>
+<li><strong>Tools Used for Monitoring</strong>:
+<ul>
+<li><strong><code>nvitop</code></strong>: Used to monitor GPU usage in real-time.<br>
+</li>
+<li><strong><code>htop</code></strong>: Provided CPU utilization and memory consumption insights.</li>
+</ul></li>
+</ul>
+<p>By observing resource utilization:</p>
+<ul>
+<li>GPU usage peaked at <strong>57%</strong>, indicating a good balance of computational load with room for scaling if query volume or dataset size increases.<br>
+</li>
+<li>CPU utilization stayed between <strong>42-45%</strong>, ensuring that the CPU was neither overloaded nor underutilized.<br>
+</li>
+<li>Memory usage (5 GB) remained reasonable given the dataset and computations involved.</li>
+</ul>
+</section>
+<section id="why-track-performance-and-utilization" class="level4">
+<h4 class="anchored" data-anchor-id="why-track-performance-and-utilization"><strong>Why Track Performance and Utilization?</strong></h4>
+<p>Real-time crisis analysis demands low latency and efficient resource utilization:</p>
+<ul>
+<li><strong>Responsiveness</strong>: Monitoring performance metrics like retrieval times ensures the system remains highly responsive to user queries.<br>
+</li>
+<li><strong>Optimization</strong>: Identifying CPU and GPU bottlenecks helps refine the workload distribution for optimal performance.<br>
+</li>
+<li><strong>Scalability</strong>: Insights into memory consumption and GPU utilization allow us to plan for future growth by either optimizing the existing pipeline or scaling horizontally with more resources.</li>
+</ul>
+<p>By tracking these performance metrics and resource usage, we were able to strike a balance between efficiency and scalability. The system effectively utilizes available hardware resources without overloading them, making it well-suited for real-time analysis of large-scale crisis data streams.</p>
+<hr>
+</section>
+<section id="backend" class="level4">
+<h4 class="anchored" data-anchor-id="backend"><strong>Backend</strong></h4>
+<p>The backend is the cornerstone of the system, tasked with performing high-speed vector-based searches to retrieve relevant documents. By leveraging <strong>FAISS (Facebook AI Similarity Search)</strong>, it achieves efficient similarity computations at scale, making it essential for real-time applications like CRISISFacts. This layer acts as the bridge between the stored document embeddings and the application layer’s request for results.</p>
+<p><strong>Key Functionalities</strong></p>
+<ol type="1">
+<li><strong>FAISS Index-Based Search</strong>
+<ul>
+<li>At the heart of the backend lies the <strong>FAISS index</strong>, a specialized structure for fast similarity search.
+<ul>
+<li><strong>Index Structure</strong>: The index stores high-dimensional embeddings of documents (in this case, <code>float32</code> vectors), enabling the system to perform approximate nearest-neighbor searches.</li>
+<li><strong>Why FAISS?</strong><br>
+FAISS is optimized for vector similarity search, providing sub-linear query time for large datasets. This makes it suitable for crisis data scenarios where immediate responses are critical.</li>
+</ul></li>
+<li><strong>Efficient Querying</strong>:
+<ul>
+<li>Input query vectors are compared against document embeddings using a distance metric (L2 distance in this case).</li>
+<li>The index returns the <code>top_k</code> closest matches, ensuring that the most relevant results are retrieved quickly.</li>
+<li>Validation mechanisms ensure the query vector’s dimensions align with the stored index’s requirements.</li>
+</ul></li>
+</ul></li>
+<li><strong>Seamless Integration with Data</strong>
+<ul>
+<li>The backend reads a <strong>preprocessed dataset</strong> containing text documents and their associated identifiers (<code>doc_id</code>), aligning the search results with their corresponding metadata.</li>
+<li><strong>Why Pandas for Data Handling?</strong>
+<ul>
+<li><strong>Flexibility</strong>: Pandas allows easy manipulation of tabular data, simplifying the retrieval of document metadata based on search indices.</li>
+<li><strong>Scalability</strong>: While FAISS handles the embeddings, Pandas efficiently manages the textual and structural data associated with the embeddings.</li>
+</ul></li>
+<li>The dataset acts as the source for two critical elements:
+<ul>
+<li><strong>Textual Data</strong>: Used for retrieving matched documents.</li>
+<li><strong>Identifiers</strong>: Ensures traceability of results for downstream analysis or user display.</li>
+</ul></li>
+</ul></li>
+<li><strong>FAISS Query Endpoint</strong>
+<ul>
+<li><strong>REST API Design</strong>:
+<ul>
+<li>The backend provides a single endpoint (<code>/search</code>) that accepts a query vector and the number of desired results (<code>top_k</code>).</li>
+<li>Built using <strong>FastAPI</strong>, the endpoint ensures low-latency response times and supports robust validation of input formats.</li>
+</ul></li>
+<li><strong>Why FastAPI for the Backend?</strong>
+<ul>
+<li><strong>Performance</strong>: FastAPI’s asynchronous capabilities ensure that the backend can handle multiple concurrent requests, crucial for high-demand scenarios.</li>
+<li><strong>Validation</strong>: The <strong><code>pydantic</code></strong> library, integrated into FastAPI, validates incoming JSON payloads (e.g., query vectors), reducing errors caused by malformed requests.</li>
+</ul></li>
+<li><strong>Workflow</strong>:
+<ul>
+<li>Query vector validation: Ensures the vector aligns with the index dimensions.</li>
+<li>FAISS search execution: Finds the nearest document vectors to the query.</li>
+<li>Result assembly: Retrieves document identifiers, texts, and similarity distances.</li>
+<li>Response generation: Formats the results into a JSON structure for the application layer to process.</li>
+</ul></li>
+</ul></li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="results" class="level3">
+<h3 class="anchored" data-anchor-id="results"><strong>Results</strong></h3>
+<p>Our system’s performance is anchored in its ability to provide high-speed retrieval while ensuring relevance and scalability. By leveraging GPUs for vector-based similarity searches and optimizing the data flow through modular components, we achieved significant improvements in real-time performance and system efficiency.</p>
+<ol type="1">
+<li><p><strong>Retrieval Time and Efficiency</strong>:</p>
+<ul>
+<li>Retrieval time was our primary focus, especially given the use of GPUs in the backend with <strong>FAISS</strong>. The high computational power of GPUs allowed us to perform approximate nearest-neighbor searches at scale, reducing response latency to milliseconds.<br>
+</li>
+<li>During the retrieval process:
+<ul>
+<li><strong>BM25 (Initial Ranking)</strong> quickly filtered documents based on keyword matches.<br>
+</li>
+<li><strong>FAISS Embedding Search</strong> utilized precomputed document embeddings to find semantically similar results, accelerated through GPU parallelization.<br>
+</li>
+<li>Retrieval time metrics showed:
+<ul>
+<li>BM25 retrieval: <strong>sub-second times</strong> for large datasets.</li>
+<li>FAISS search: Leveraged GPU resources to maintain query times under <strong>100ms</strong>, even when querying tens of thousands of documents.</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>These results confirm that GPU-based vector search significantly improves retrieval time over CPU-based implementations, making it highly effective for real-time crisis event analysis.</p></li>
+<li><p><strong>Relevance and Neural Re-Ranking</strong>:</p>
+<ul>
+<li>While retrieval speed is critical, relevance remains the primary measure of success for a summarization system. To enhance relevance:
+<ul>
+<li>We employed the <strong>Stella Sentence Transformer model</strong> for generating high-quality embeddings. These embeddings were used for semantic comparison between query vectors and candidate document embeddings.</li>
+<li>Neural re-ranking fine-tuned the order of BM25 and FAISS results based on semantic similarity scores.<br>
+</li>
+</ul></li>
+<li>Key metrics observed:
+<ul>
+<li><strong>ROUGE Scores</strong>: Evaluated the alignment between retrieved snippets and query text. The re-ranking process improved ROUGE-1, ROUGE-2, and ROUGE-L scores consistently across queries.<br>
+</li>
+<li><strong>Cosine Similarity</strong>: Ensured semantic closeness between the query and retrieved texts, validating the neural ranking model’s effectiveness.<br>
+</li>
+<li><strong>Jaccard Similarity</strong>: Provided insights into lexical overlap, complementing semantic metrics for ranking.</li>
+</ul></li>
+</ul>
+<p>The combination of BM25 and neural re-ranking demonstrates that our model delivers not only <strong>fast</strong> results but also <strong>relevant</strong> ones.</p></li>
+<li><p><strong>Scalability and Modularity</strong>:</p>
+<ul>
+<li>The modular architecture of our system allowed us to address scalability concerns effectively. By decoupling the <strong>backend</strong>, <strong>application layer</strong>, and <strong>frontend</strong>, we achieved:
+<ul>
+<li><strong>Efficient Data Flow</strong>: Each layer processes specific tasks (retrieval, re-ranking, and display) independently, ensuring the system can handle large workloads without bottlenecks.<br>
+</li>
+<li><strong>Integration with New Data Streams</strong>: New data can be ingested, preprocessed, and indexed without reconfiguring the entire pipeline.<br>
+</li>
+<li><strong>Deployment Flexibility</strong>: The use of <strong>Docker</strong> and containerized services enabled seamless deployment across different environments, ensuring the system is production-ready.</li>
+</ul></li>
+</ul>
+<p>This design ensures that as the scale of data grows, our system can continue to maintain high-speed retrieval times while remaining adaptable to new information sources and technologies.</p></li>
+</ol>
+<p>For example, the query <strong>“Houston Explosion”</strong> demonstrates how effectively our system retrieves and ranks relevant documents in real-time. The initial retrieval phase, powered by BM25, focuses on keyword matches, which quickly filters the document set, ensuring only relevant candidates are passed to subsequent stages. This step is extremely efficient, taking an average of <strong>0.0142 seconds</strong>, making it ideal for handling large datasets.</p>
+<p>Following this, FAISS leverages precomputed embeddings for vector-based semantic matching. For this query, it achieved an average retrieval time of <strong>0.0189 seconds</strong>, underscoring the power of approximate nearest-neighbor searches using GPU acceleration. This combination of BM25 and FAISS ensures both lexical and semantic relevance, even for complex queries like this one.</p>
+<p>To refine the results further, the system applies neural re-ranking, optimizing the order of retrieved documents based on metrics like <strong>Cosine Similarity (0.8089)</strong> and <strong>Jaccard Similarity (0.5)</strong>. These scores highlight the balance between semantic alignment and lexical overlap with the query. Additionally, relevance metrics such as <strong>ROUGE-1 (0.6667)</strong> further validate the effectiveness of the re-ranking process.</p>
+<p>The results for “Houston Explosion” show how well the system performs under real-world conditions. For instance, the top-ranked document, “Explosion” scored <strong>1480.836</strong>, reflecting its strong alignment with the query. Similarly, other highly relevant documents, such as “Gas explosion” scored <strong>1443.311</strong>, further demonstrating the system’s ability to retrieve actionable insights.</p>
+<p>This example highlights not just the system’s speed but its capacity to combine semantic and lexical relevance, making it a powerful tool for crisis event analysis. It also demonstrates the scalability of the approach, maintaining efficiency and accuracy even with extensive datasets.</p>
+<hr>
+</section>
+<section id="problems-faced" class="level3">
+<h3 class="anchored" data-anchor-id="problems-faced">Problems Faced:</h3>
+<p>While building the system, we faced several challenges that required significant effort and innovative solutions:</p>
+<ol type="1">
+<li><p><strong>3-Tier Architecture Communication Over Docker Network</strong>:<br>
+Orchestrating communication between the three tiers (backend, application layer, and frontend) over a Docker network was challenging. Ensuring proper container connectivity and managing service dependencies required careful configuration. Debugging network issues, such as misaligned ports and service discovery failures, often slowed down development. Setting up a robust communication layer that handled errors gracefully was essential for the system’s reliability.</p></li>
+<li><p><strong>Evaluating Relevant Metrics</strong>:<br>
+Identifying and using the right evaluation metrics to gauge retrieval relevance and system performance was complex. Balancing metrics like <strong>Cosine Similarity</strong>, <strong>ROUGE scores</strong>, and <strong>Jaccard Similarity</strong> to capture both semantic and lexical relevance required extensive experimentation. Additionally, mapping these metrics to real-world utility and ensuring they aligned with the end-user needs posed an additional layer of complexity.</p></li>
+<li><p><strong>Choosing the Best Sentence Transformer</strong>:<br>
+Selecting the right Sentence Transformer model was a critical decision. The challenge lay in finding a balance between performance and efficiency. Some models offered better semantic accuracy but were computationally expensive, affecting response times. We conducted multiple benchmarks to identify a model that provided high-quality embeddings without compromising retrieval speed.</p></li>
+<li><p><strong>Making the App Easily Deployable</strong>:<br>
+Ensuring the system was straightforward to deploy in different environments was a persistent challenge. Incorporating containerization with Docker helped, but managing dependencies, scaling the system for varying workloads, and enabling seamless updates required additional work. Building a deployable solution that remained lightweight and adaptable to different infrastructure setups was a major focus area.</p></li>
+<li><p><strong>Building the FAISS Index</strong>:<br>
+Creating the FAISS index for large datasets posed its own set of challenges. Efficiently preprocessing and embedding millions of documents into a vector space while maintaining low memory usage and high accuracy was a delicate balancing act. Handling incremental updates to the index, such as adding new documents or re-indexing, further added to the complexity.</p></li>
+</ol>
+</section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion"><strong>Conclusion</strong></h3>
+<p>Our project successfully addresses the critical challenge of extracting, ranking, and summarizing crisis-related information in real time. By designing a modular and scalable retrieval system, we have demonstrated a robust framework capable of handling large-scale textual data efficiently.</p>
+<p>The key achievements of our project include:<br>
+- <strong>High-Speed Retrieval</strong>: Leveraging GPUs and FAISS for approximate nearest-neighbor searches allowed us to achieve low-latency document retrieval. Retrieval times consistently remained under <strong>100 milliseconds</strong>, even when querying datasets with tens of thousands of entries.<br>
+- <strong>Enhanced Relevance</strong>: Neural re-ranking using <strong>Sentence Transformers</strong> (Stella) significantly improved the semantic alignment of results with user queries. Metrics such as ROUGE scores and cosine similarity highlighted the accuracy and contextual relevance of the retrieved documents.<br>
+- <strong>Scalability and Deployment</strong>: The system’s modular architecture, containerized with <strong>Docker</strong>, ensures seamless scalability and easy integration with new data sources. Each layer—backend, application layer, and frontend—operates independently, providing flexibility for system improvements and maintenance.</p>
+<p>The use of BM25 for initial retrieval, FAISS for vector-based semantic searches, and a re-ranking mechanism demonstrates the power of hybrid retrieval strategies. Our <strong>frontend interface</strong>, built with Gradio, provides a user-friendly tool for interacting with the system, enabling first responders, researchers, and other stakeholders to access organized, actionable insights rapidly.</p>
+<p>While our system performs well, future improvements can focus on:<br>
+- Expanding the dataset to include more diverse crisis events.<br>
+- Fine-tuning neural ranking models for domain-specific contexts.<br>
+- Exploring real-time data ingestion pipelines for continuously evolving events.</p>
+<p>In conclusion, we have built a deployable, efficient, and scalable retrieval and ranking pipeline that delivers <strong>real-time insights</strong> for crisis events. By combining speed, relevance, and usability, our system holds immense potential for practical deployment in scenarios requiring quick, accurate, and actionable information. With further enhancements, this tool can serve as a valuable asset for crisis management, improving decision-making processes during critical situations.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

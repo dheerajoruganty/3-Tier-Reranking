@@ -134,8 +134,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--text_column",
         type=str,
-        default="preprocessed_text",
-        help="Name of the column containing preprocessed text (default: preprocessed_text).",
+        default="text",
+        help="Name of the column containing preprocessed text (default: text).",
     )
     parser.add_argument(
         "--n_clusters",
