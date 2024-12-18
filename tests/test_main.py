@@ -14,6 +14,7 @@ from src.crisissum.app_layer.main import (
 
 # ----------------- Fixtures ----------------- #
 
+
 @pytest.fixture
 def client():
     """Fixture to create a FastAPI test client."""
@@ -34,16 +35,17 @@ def mock_csv_data():
 
 @pytest.fixture
 def mock_faiss_response():
-    """Fixture for mocked FAISS backend response."""
+    """Fixture for FAISS backend response."""
     return {
         "results": [
-            {"doc_id": "1", "text": "houston explosion shakes the city"},
-            {"doc_id": "2", "text": "explosion in houston"},
+            {"doc_id": "1", "text": "houston explosion shakes the city", "score": 0.9},
+            {"doc_id": "2", "text": "explosion in houston", "score": 0.85},
         ]
     }
 
 
 # ----------------- Unit Tests ----------------- #
+
 
 def test_preprocess_text():
     """Test text preprocessing: lowercasing, removing special characters, and trimming."""
@@ -90,6 +92,7 @@ def test_compute_jaccard_similarity():
 
 # ----------------- Endpoint Tests ----------------- #
 
+
 @patch("pandas.read_csv")
 def test_health_check(mock_read_csv, client):
     """
@@ -104,7 +107,9 @@ def test_health_check(mock_read_csv, client):
 
 @patch("pandas.read_csv")
 @patch("requests.post")
-def test_query_endpoint(mock_post, mock_read_csv, client, mock_csv_data, mock_faiss_response):
+def test_query_endpoint(
+    mock_post, mock_read_csv, client, mock_csv_data, mock_faiss_response
+):
     """
     Test the /query endpoint with mocked dataset and FAISS backend.
     Ensures correct results and metrics are returned.
@@ -129,6 +134,7 @@ def test_query_endpoint(mock_post, mock_read_csv, client, mock_csv_data, mock_fa
     results = json_response["results"]
     assert len(results) == 2
     assert results[0]["text"] == "houston explosion shakes the city"
+    assert results[1]["text"] == "explosion in houston"
 
     # Validate the metrics
     metrics = json_response["metrics"]
