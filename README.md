@@ -2,6 +2,8 @@
 
 ## **Overview**  
 
+![CrisisSum Architecture](images/Crisissum.png)
+
 **CrisisSum** is a containerized platform designed for fast and efficient retrieval, ranking, and summarization of crisis-related events. It combines BM25-based retrieval, FAISS indexing, and embedding-based re-ranking to provide highly relevant results along with detailed evaluation metrics.  
 
 This system leverages:  
@@ -187,16 +189,126 @@ The central `test_main.py` includes coverage for:
 
 ## **Data Preprocessing**  
 
-To clean and process new datasets for FAISS indexing, use the following scripts:  
+We have cleaned and preprocessed data, for FAISS, if you dont have a GPU, Builing an index and preprocessing data takes approximately 50+ hours. For this reason, do not rerun the preprocessing script or building a faiss index. All of this is already included. but if you really want to, then you can, but it might not work as this is all GPU specific code.
 
+---
+
+### **1. Combine CSV Files**
+
+#### **Script**: `src/crisissum/preprocessing/combine_csv.py`
+
+This script combines multiple CSV files from a directory into a single output CSV file.
+
+**Usage**:
 ```bash
-python src/crisissum/preprocessing/combine_csv.py
-python src/crisissum/preprocessing/populate_faiss_index.py
-```  
+python src/crisissum/preprocessing/combine_csv.py --input_dir /path/to/input_dir --output_file /path/to/output.csv
+```
 
-These scripts:  
-1. Combine CSV datasets into a unified format.  
-2. Generate and populate FAISS indices for the retrieval backend.  
+**Arguments**:
+- `--input_dir`: Directory containing the input CSV files.
+- `--output_file`: Path to save the combined CSV file.
+
+**Example**:
+```bash
+python src/crisissum/preprocessing/combine_csv.py --input_dir data/cleaned_crisisfacts/ --output_file data/combined_data.csv
+```
+
+---
+
+### **2. Preprocess Text Data**
+
+#### **Script**: `src/crisissum/preprocessing/preprocessing.py`
+
+This script preprocesses text data by tokenizing, removing stopwords, and extracting entities.
+
+**Usage**:
+```bash
+python src/crisissum/preprocessing/preprocessing.py --input_file /path/to/input.parquet --output_file /path/to/output.csv --text_column text
+```
+
+**Arguments**:
+- `--input_file`: Path to the input Parquet file.
+- `--output_file`: Path to save the preprocessed CSV file.
+- `--text_column`: Column name containing the text to preprocess.
+
+**Example**:
+```bash
+python src/crisissum/preprocessing/preprocessing.py --input_file data/cleaned_crisisfacts_data.parquet --output_file data/preprocessed_crisisfacts_data.csv --text_column text
+```
+
+---
+
+### **3. Populate FAISS Index**
+
+#### **Script**: `src/crisissum/preprocessing/populate_faiss_index.py`
+
+This script creates and populates FAISS indices (e.g., float32) for fast similarity searches.
+
+**Usage**:
+```bash
+python src/crisissum/preprocessing/populate_faiss_index.py --data_file /path/to/data.csv --index_dir /path/to/index_dir
+```
+
+**Arguments**:
+- `--data_file`: Path to the input data file (CSV).
+- `--index_dir`: Directory to store the FAISS indices.
+
+**Example**:
+```bash
+python src/crisissum/preprocessing/populate_faiss_index.py --data_file data/combined_data.csv --index_dir data/faiss_indices/
+```
+
+---
+
+### **4. Dimensionality Reduction and Clustering**
+
+#### **Script**: `src/crisissum/dimensionality_reduction.py`
+
+This script performs dimensionality reduction (PCA and t-SNE) and clusters data using KMeans.
+
+**Usage**:
+```bash
+python src/crisissum/dimensionality_reduction.py --input_file /path/to/preprocessed.csv --text_column preprocessed_text
+```
+
+**Arguments**:
+- `--input_file`: Path to the preprocessed CSV file.
+- `--text_column`: Column name containing the preprocessed text.
+
+**Example**:
+```bash
+python src/crisissum/dimensionality_reduction.py --input_file data/preprocessed_crisisfacts_data.csv --text_column preprocessed_text
+```
+
+---
+
+### **5. Clustering Analysis**
+
+#### **Script**: `src/crisissum/clustering.py`
+
+This script analyzes clusters using KMeans and DBSCAN.
+
+**Usage**:
+```bash
+python src/crisissum/clustering.py --input_file /path/to/preprocessed.csv --text_column preprocessed_text --n_clusters 5
+```
+
+**Arguments**:
+- `--input_file`: Path to the preprocessed CSV file.
+- `--text_column`: Column name containing the preprocessed text.
+- `--n_clusters`: Number of clusters for KMeans (default: 5).
+
+**Example**:
+```bash
+python src/crisissum/clustering.py --input_file data/preprocessed_crisisfacts_data.csv --text_column preprocessed_text --n_clusters 5
+``` 
+
+---
+
+### Notes
+
+- Make sure all dependencies are installed as specified in the `requirements.txt` or `pyproject.toml` files.
+- Replace `/path/to/...` with the actual paths in your environment.
 
 ---  
 

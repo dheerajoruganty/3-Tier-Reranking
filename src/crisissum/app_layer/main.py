@@ -32,9 +32,16 @@ EXAMPLE_DATA = pd.DataFrame(
 )
 
 
-# Replace the global dataset loading with a function
 def load_dataset(data_path=DATA_PATH):
-    """Load and preprocess dataset."""
+    """
+    Load and preprocess dataset from the specified file path.
+
+    Args:
+        data_path (str): Path to the dataset file.
+
+    Returns:
+        pd.DataFrame: Preprocessed dataset with cleaned text.
+    """
     try:
         df = pd.read_csv(data_path)
         df["text"] = df["text"].fillna("").apply(preprocess_text)
@@ -53,9 +60,17 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 logger.info(f"Using device: {device}")
 
 
-# Preprocessing function
 def preprocess_text(text):
-    """Clean and normalize text: lowercase, remove URLs, special characters, and trim."""
+    """
+    Clean and normalize text by converting to lowercase, removing URLs,
+    special characters, and trimming whitespace.
+
+    Args:
+        text (str): Input text to preprocess.
+
+    Returns:
+        str: Preprocessed and cleaned text.
+    """
     if not isinstance(text, str):
         return ""
     text = text.lower()
@@ -65,8 +80,17 @@ def preprocess_text(text):
     return text
 
 
-# Compute ROUGE scores
 def compute_rouge(reference, hypothesis):
+    """
+    Compute ROUGE scores between a reference text and a hypothesis.
+
+    Args:
+        reference (str): Reference text.
+        hypothesis (str): Hypothesis or predicted text.
+
+    Returns:
+        dict: Dictionary containing ROUGE-1, ROUGE-2, and ROUGE-L scores.
+    """
     scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
     scores = scorer.score(reference, hypothesis)
     return {
@@ -76,15 +100,31 @@ def compute_rouge(reference, hypothesis):
     }
 
 
-# Compute Cosine Similarity
 def compute_cosine_similarity(query_vector, text_vector):
-    """Compute cosine similarity between query vector and text vector."""
+    """
+    Compute cosine similarity between a query vector and text vector.
+
+    Args:
+        query_vector (np.ndarray): Embedding vector of the query.
+        text_vector (np.ndarray): Embedding vector of the text.
+
+    Returns:
+        float: Cosine similarity score rounded to 4 decimal places.
+    """
     return round(cosine_similarity([query_vector], [text_vector])[0][0], 4)
 
 
-# Compute Jaccard Similarity
 def compute_jaccard_similarity(query, text):
-    """Compute Jaccard similarity for word-level overlap."""
+    """
+    Compute Jaccard similarity for word-level overlap between query and text.
+
+    Args:
+        query (str): Query text.
+        text (str): Text to compare with the query.
+
+    Returns:
+        float: Jaccard similarity score.
+    """
     query_set = set(query.split())
     text_set = set(text.split())
     intersection = len(query_set.intersection(text_set))
@@ -92,7 +132,6 @@ def compute_jaccard_similarity(query, text):
     return round(intersection / union, 4) if union > 0 else 0.0
 
 
-# Load SentenceTransformer model
 logger.info("Loading SentenceTransformer model...")
 model = SentenceTransformer("blevlabs/stella_en_v5", device=device)
 logger.info("Model loaded successfully.")
@@ -110,18 +149,33 @@ except Exception as e:
     raise
 
 
-# Health check endpoint
 @app.get("/")
 def health_check():
+    """
+    Health check endpoint to verify that the application layer is ready.
+
+    Returns:
+        dict: Status message indicating readiness.
+    """
     return {"status": "Application Layer is ready"}
 
 
-# Query endpoint
 @app.get("/query")
 def query(
     text: str = Query(..., min_length=1, description="Input query text"),
     top_k: int = Query(10, ge=1, le=100, description="Number of top results to fetch"),
 ):
+    """
+    Query endpoint for retrieving relevant results using BM25, FAISS,
+    and re-ranking techniques.
+
+    Args:
+        text (str): Input query text.
+        top_k (int): Number of top results to return.
+
+    Returns:
+        dict: A dictionary containing the results and performance metrics.
+    """
     try:
         metrics = {}
         logger.info(f"Received query: text='{text}', top_k={top_k}")
@@ -175,25 +229,6 @@ def query(
         ][:top_k]
         rerank_end = time.time()
         metrics["Re-ranking Time"] = f"{rerank_end - rerank_start:.4f} seconds"
-
-        # Compute metrics for top result
-        if rerank_results:
-            top_result_text = preprocess_text(rerank_results[0]["text"])
-
-            # ROUGE, Cosine, and Jaccard scores
-            rouge_scores = compute_rouge(processed_query, top_result_text)
-            cosine_score = compute_cosine_similarity(
-                query_vector, model.encode(top_result_text)
-            )
-            jaccard_score = compute_jaccard_similarity(processed_query, top_result_text)
-
-            metrics.update(rouge_scores)
-            metrics["Cosine Similarity"] = cosine_score
-            metrics["Jaccard Similarity"] = jaccard_score
-
-        metrics["Total Query Processing Time"] = (
-            f"{rerank_end - bm25_start:.4f} seconds"
-        )
 
         return {"results": rerank_results, "metrics": metrics}
 
